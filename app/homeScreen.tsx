@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   FlatList,
@@ -20,7 +21,8 @@ import {
 } from "react-native-popup-menu";
 import Ionicons from "react-native-vector-icons/Ionicons";
 
-export default function HomeScreen() {
+const HomeScreen = () => {
+  const router = useRouter();
   const [selectRedBallCount, setSelectRedBallCount] = useState<number>(3);
   const redBalls = [1, 2, 3, 4, 5];
   const [playerFields, setPlayerFields] = useState<string[]>([]);
@@ -115,6 +117,7 @@ export default function HomeScreen() {
               }
               ListFooterComponent={
                 <TouchableOpacity
+                  onPress={() => router.push("/AssignBallsScreen")}
                   style={[
                     styles.assignBallsButton,
                     { opacity: playerFields.length > 1 ? 1 : 0 },
@@ -149,7 +152,9 @@ export default function HomeScreen() {
       </TouchableWithoutFeedback>
     </MenuProvider>
   );
-}
+};
+
+export default HomeScreen;
 
 const styles = StyleSheet.create({
   background: {
@@ -183,7 +188,7 @@ const styles = StyleSheet.create({
 
   redBallsSection: {
     alignItems: "center",
-    marginTop: 100,
+    marginTop: 150,
   },
 
   redBallsCountToFreeText: {
