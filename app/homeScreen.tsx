@@ -37,98 +37,10 @@ const HomeScreen = () => {
     <MenuProvider>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <View style={styles.background}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            style={{ flex: 1 }}
-          >
-            <FlatList
-              data={playerFields}
-              keyExtractor={(_, index) => index.toString()}
-              renderItem={({ item, index }) => (
-                <View style={styles.textFieldContainer}>
-                  <TextInput
-                    style={styles.textField}
-                    value={item}
-                    onChangeText={(text) => {
-                      const updated = [...playerFields];
-                      updated[index] = text;
-                      setPlayerFields(updated);
-                    }}
-                    placeholder={`Enter player ${index + 1} name`}
-                    placeholderTextColor="#ccc"
-                  />
-                  <TouchableOpacity
-                    style={styles.removeButton}
-                    onPress={() => removePlayerField(index)}
-                  >
-                    <Ionicons
-                      name="remove-circle-outline"
-                      size={24}
-                      color="red"
-                    />
-                  </TouchableOpacity>
-                </View>
-              )}
-              ListHeaderComponent={
-                <View style={styles.redBallsSection}>
-                  <Text style={styles.redBallsCountToFreeText}>
-                    Red Balls Count To Free:
-                  </Text>
-
-                  <Menu>
-                    <MenuTrigger>
-                      <View style={styles.menuButton}>
-                        <Text style={styles.selectedRedBallCountText}>
-                          {selectRedBallCount}
-                        </Text>
-                      </View>
-                    </MenuTrigger>
-
-                    <MenuOptions
-                      customStyles={{
-                        optionsContainer: {
-                          backgroundColor: "#1A5E49",
-                          width: 50,
-                          borderRadius: 25,
-                          alignItems: "center",
-                        },
-                      }}
-                    >
-                      {redBalls.map((num) => (
-                        <MenuOption
-                          key={num}
-                          onSelect={() => setSelectRedBallCount(num)}
-                          text={`${num}`}
-                          customStyles={{
-                            optionText: {
-                              color:
-                                num === selectRedBallCount ? "black" : "white",
-                              fontSize: 20,
-                            },
-                            optionWrapper: {
-                              marginVertical: 4,
-                            },
-                          }}
-                        />
-                      ))}
-                    </MenuOptions>
-                  </Menu>
-                </View>
-              }
-              ListFooterComponent={
-                <TouchableOpacity
-                  onPress={() => router.push("/AssignBallsScreen")}
-                  style={[
-                    styles.assignBallsButton,
-                    { opacity: playerFields.length > 1 ? 1 : 0 },
-                  ]}
-                >
-                  <Text style={{ color: "white", fontSize: 20 }}>
-                    Assign Balls
-                  </Text>
-                </TouchableOpacity>
-              }
-            />
+          <View style={styles.topButtonsContainer}>
+            <TouchableOpacity style={styles.loadPlayersButton}>
+              <Ionicons name="cloud-outline" size={24} color="white" />
+            </TouchableOpacity>
             <TouchableOpacity
               style={[
                 styles.addPlayerButton,
@@ -143,10 +55,98 @@ const HomeScreen = () => {
             >
               <Ionicons name="person-add-outline" size={24} color="white" />
             </TouchableOpacity>
+          </View>
+          <View style={styles.redBallsSection}>
+            <Text style={styles.redBallsCountToFreeText}>
+              Red Balls Count To Free:
+            </Text>
 
-            <TouchableOpacity style={styles.loadPlayersButton}>
-              <Ionicons name="cloud-outline" size={24} color="white" />
-            </TouchableOpacity>
+            <Menu>
+              <MenuTrigger>
+                <View style={styles.menuButton}>
+                  <Text style={styles.selectedRedBallCountText}>
+                    {selectRedBallCount}
+                  </Text>
+                </View>
+              </MenuTrigger>
+
+              <MenuOptions
+                customStyles={{
+                  optionsContainer: {
+                    backgroundColor: "#1A5E49",
+                    width: 50,
+                    borderRadius: 25,
+                    alignItems: "center",
+                  },
+                }}
+              >
+                {redBalls.map((num) => (
+                  <MenuOption
+                    key={num}
+                    onSelect={() => setSelectRedBallCount(num)}
+                    text={`${num}`}
+                    customStyles={{
+                      optionText: {
+                        color: num === selectRedBallCount ? "black" : "white",
+                        fontSize: 20,
+                      },
+                      optionWrapper: {
+                        marginVertical: 4,
+                      },
+                    }}
+                  />
+                ))}
+              </MenuOptions>
+            </Menu>
+          </View>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={{ flex: 1 }}
+          >
+            <View>
+              <FlatList
+                data={playerFields}
+                keyExtractor={(_, index) => index.toString()}
+                renderItem={({ item, index }) => (
+                  <View style={styles.textFieldContainer}>
+                    <TextInput
+                      style={styles.textField}
+                      value={item}
+                      onChangeText={(text) => {
+                        const updated = [...playerFields];
+                        updated[index] = text;
+                        setPlayerFields(updated);
+                      }}
+                      placeholder={`Enter player ${index + 1} name`}
+                      placeholderTextColor="#ccc"
+                    />
+                    <TouchableOpacity
+                      style={styles.removeButton}
+                      onPress={() => removePlayerField(index)}
+                    >
+                      <Ionicons
+                        name="remove-circle-outline"
+                        size={24}
+                        color="red"
+                      />
+                    </TouchableOpacity>
+                  </View>
+                )}
+                ListFooterComponent={
+                  <TouchableOpacity
+                    onPress={() => router.push("/AssignBallsScreen")}
+                    style={[
+                      styles.assignBallsButton,
+                      { opacity: playerFields.length > 1 ? 1 : 0 },
+                    ]}
+                  >
+                    <Text style={{ color: "white", fontSize: 20 }}>
+                      Assign Balls
+                    </Text>
+                  </TouchableOpacity>
+                }
+              />
+            </View>
           </KeyboardAvoidingView>
         </View>
       </TouchableWithoutFeedback>
@@ -159,13 +159,20 @@ export default HomeScreen;
 const styles = StyleSheet.create({
   background: {
     flex: 1,
+    flexDirection: "column",
     backgroundColor: "#1C1C1E",
+    gap: 20,
+  },
+
+  topButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 10,
+    paddingHorizontal: 20,
+    marginTop: 60,
   },
 
   addPlayerButton: {
-    position: "absolute",
-    top: 50,
-    right: 16,
     width: 50,
     height: 50,
     backgroundColor: "#1C7630",
@@ -175,9 +182,6 @@ const styles = StyleSheet.create({
   },
 
   loadPlayersButton: {
-    position: "absolute",
-    top: 50,
-    right: 76,
     width: 50,
     height: 50,
     backgroundColor: "#1C7630",
@@ -188,7 +192,7 @@ const styles = StyleSheet.create({
 
   redBallsSection: {
     alignItems: "center",
-    marginTop: 150,
+    height: 100,
   },
 
   redBallsCountToFreeText: {
