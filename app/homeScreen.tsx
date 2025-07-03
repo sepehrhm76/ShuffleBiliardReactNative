@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -19,7 +20,6 @@ import {
   MenuProvider,
   MenuTrigger,
 } from "react-native-popup-menu";
-import Ionicons from "react-native-vector-icons/Ionicons";
 
 const HomeScreen = () => {
   const router = useRouter();
@@ -134,7 +134,9 @@ const HomeScreen = () => {
                 )}
                 ListFooterComponent={
                   <TouchableOpacity
-                    onPress={() => router.push("/AssignBallsScreen")}
+                    onPress={() => {router.push("/AssignBallsScreen");
+                      console.log(playerFields);
+                    }}
                     style={[
                       styles.assignBallsButton,
                       { opacity: playerFields.length > 1 ? 1 : 0 },

@@ -1,6 +1,9 @@
 import React, { useRef, useState } from "react";
 import {
+  FlatList,
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -28,19 +31,36 @@ const AssignBallsScreen = () => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.background}>
-        <Text style={styles.label}>Sepehr, take phone:</Text>
-        <TouchableOpacity
-          style={[
-            styles.ballCarts,
-            { backgroundColor: isFlipped ? "gray" : "white" },
-          ]}
-          onPress={handlePress}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          style={{ flex: 1 }}
         >
-          <Text style={{ fontSize: 20 }}>{isFlipped ? "2" : "Sepehr"}</Text>
-        </TouchableOpacity>
-
-        <TextInput style={styles.textField} placeholder="Type here" />
-
+          <FlatList
+            data={[{ key: "content" }]}
+            renderItem={() => (
+              <>
+                <Text style={styles.label}>Sepehr, take phone:</Text>
+                <TouchableOpacity
+                  style={[
+                    styles.ballCarts,
+                    { backgroundColor: isFlipped ? "gray" : "white" },
+                  ]}
+                  onPress={handlePress}
+                >
+                  <Text style={{ fontSize: 20 }}>
+                    {isFlipped ? "2" : "Sepehr"}
+                  </Text>
+                </TouchableOpacity>
+                <TextInput
+                  style={styles.textField}
+                  placeholder="Set a password"
+                  secureTextEntry={true}
+                  placeholderTextColor="#ccc"
+                />
+              </>
+            )}
+          />
+        </KeyboardAvoidingView>
         <TouchableOpacity style={styles.nextButton}>
           <Text style={{ color: "white", fontSize: 20 }}>Next</Text>
         </TouchableOpacity>
@@ -54,17 +74,17 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "column",
     backgroundColor: "#1C1C1E",
-    gap: 20,
   },
 
   label: {
-    marginTop: 60,
+    marginTop: 100,
     color: "white",
     fontSize: 25,
     textAlign: "center",
   },
 
   ballCarts: {
+    marginTop: 100,
     marginHorizontal: 20,
     height: 200,
     justifyContent: "center",
@@ -75,10 +95,13 @@ const styles = StyleSheet.create({
   },
 
   textField: {
+    marginTop: 50,
     height: 40,
     backgroundColor: "#2E2E2E",
     borderRadius: 8,
+    paddingHorizontal: 10,
     marginHorizontal: 20,
+    color: "white",
   },
 
   nextButton: {
