@@ -20,11 +20,14 @@ import {
   MenuProvider,
   MenuTrigger,
 } from "react-native-popup-menu";
-
+import { usePlayers } from "./Context/PlayerContext";
+import { Player } from "./Models/Player";
 const HomeScreen = () => {
   const router = useRouter();
+  const { setPlayers } = usePlayers();
   const [selectRedBallCount, setSelectRedBallCount] = useState<number>(3);
   const redBalls = [1, 2, 3, 4, 5];
+  const colorBalls = [2, 3, 4, 5, 6, 7];
   const [playerFields, setPlayerFields] = useState<string[]>([]);
 
   const removePlayerField = (index: number) => {
@@ -134,13 +137,49 @@ const HomeScreen = () => {
                 )}
                 ListFooterComponent={
                   <TouchableOpacity
-                    onPress={() => {router.push("/AssignBallsScreen");
-                      console.log(playerFields);
+                    onPress={() => {
+                      const players: Player[] = playerFields.map(
+                        (name, index) => {
+                          const randomColorBall = Math.floor(
+                            Math.random() * colorBalls.length
+                          );
+                          const colorBall = colorBalls[randomColorBall];
+                          colorBalls.splice(randomColorBall, 1);
+
+                          return {
+                            id: index,
+                            name: name,
+                            colorBall: colorBall,
+                            redRemaining: selectRedBallCount,
+                            password: undefined,
+                            isWinner: false,
+                            coloredPottedBalls: [],
+                            redPottedBalls: 0,
+                            pitok: 0,
+                            isPlayerTurn: false,
+                          };
+                        }
+                      );
+                      setPlayers(players);
+                      router.push("/AssignBallsScreen");
                     }}
                     style={[
                       styles.assignBallsButton,
-                      { opacity: playerFields.length > 1 ? 1 : 0 },
+                      {
+                        opacity:
+                          playerFields.length < 2
+                            ? 0
+                            : playerFields.every((name) => name.trim() !== "")
+                            ? 1
+                            : 0.5,
+                      },
                     ]}
+                    disabled={
+                      !(
+                        playerFields.length >= 2 &&
+                        playerFields.every((name) => name.trim() !== "")
+                      )
+                    }
                   >
                     <Text style={{ color: "white", fontSize: 20 }}>
                       Assign Balls
