@@ -153,7 +153,7 @@ const HomeScreen = () => {
                             redRemaining: selectRedBallCount,
                             password: undefined,
                             isWinner: false,
-                            coloredPottedBalls: [],
+                            coloredPottedBalls: [1, 2],
                             redPottedBalls: 0,
                             pitok: 0,
                             isPlayerTurn: false,

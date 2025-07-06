@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
@@ -20,6 +21,7 @@ const AssignBallsScreen = () => {
   const [playerQueue, setPlayerQueue] = useState([...players]);
   const [password, setPassword] = useState("");
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
+  const [isPasswordSecure, setPasswordSecure] = useState<boolean>(true);
   const timerRef = useRef<NodeJS.Timeout | number>(2000);
 
   const handlePress = () => {
@@ -62,14 +64,28 @@ const AssignBallsScreen = () => {
                         : playerQueue[0].name}
                     </Text>
                   </TouchableOpacity>
-                  <TextInput
-                    style={styles.textField}
-                    placeholder="Set a password"
-                    secureTextEntry={true}
-                    placeholderTextColor="#ccc"
-                    value={password}
-                    onChangeText={setPassword}
-                  />
+                  <View style={styles.textFieldWrapper}>
+                    <TextInput
+                      style={styles.textField}
+                      placeholder="Set a password"
+                      secureTextEntry={isPasswordSecure}
+                      placeholderTextColor="#ccc"
+                      value={password}
+                      onChangeText={setPassword}
+                    />
+                    <TouchableOpacity
+                      onPress={() => setPasswordSecure((prev) => !prev)}
+                      style={styles.eyeButton}
+                    >
+                      <Ionicons
+                        name={
+                          isPasswordSecure ? "eye-outline" : "eye-off-outline"
+                        }
+                        size={24}
+                        color="white"
+                      />
+                    </TouchableOpacity>
+                  </View>
                 </>
               ) : (
                 <Text
@@ -96,6 +112,10 @@ const AssignBallsScreen = () => {
             setPassword("");
             setIsFlipped(false);
             if (playerQueue.length === 1) {
+              const shuffled = [...updatedPlayers].sort(
+                () => Math.random() - 0.5
+              );
+              setPlayers(shuffled);
               router.push("/GameScreen");
             }
           }}
@@ -140,13 +160,24 @@ const styles = StyleSheet.create({
   },
 
   textField: {
-    marginTop: 50,
+    flex: 1,
     height: 40,
+    color: "white",
+  },
+
+  textFieldWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 20,
+    marginTop: 50,
     backgroundColor: "#2E2E2E",
     borderRadius: 8,
     paddingHorizontal: 10,
-    marginHorizontal: 20,
-    color: "white",
+  },
+
+  eyeButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 8,
   },
 
   nextButton: {
