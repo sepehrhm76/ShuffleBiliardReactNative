@@ -153,7 +153,7 @@ const HomeScreen = () => {
                             redRemaining: selectRedBallCount,
                             password: undefined,
                             isWinner: false,
-                            coloredPottedBalls: [1, 2],
+                            coloredPottedBalls: [],
                             redPottedBalls: 0,
                             pitok: 0,
                             isPlayerTurn: false,
@@ -161,7 +161,7 @@ const HomeScreen = () => {
                         }
                       );
                       setPlayers(players);
-                      router.push("/AssignBallsScreen");
+                      router.push("/assignBallsScreen");
                     }}
                     style={[
                       styles.assignBallsButton,

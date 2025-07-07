@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import { usePlayers } from "./Context/PlayerContext";
 
-const AssignBallsScreen = () => {
+const assignBallsScreen = () => {
   const router = useRouter();
   const { players, setPlayers } = usePlayers();
   const [playerQueue, setPlayerQueue] = useState([...players]);
@@ -116,7 +116,7 @@ const AssignBallsScreen = () => {
                 () => Math.random() - 0.5
               );
               setPlayers(shuffled);
-              router.push("/GameScreen");
+              router.push("/gameScreen");
             }
           }}
           style={[
@@ -193,4 +193,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AssignBallsScreen;
+export default assignBallsScreen;

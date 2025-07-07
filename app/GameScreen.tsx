@@ -9,11 +9,13 @@ import {
   View,
 } from "react-native";
 import { usePlayers } from "./Context/PlayerContext";
-const GameScreen = () => {
+const gameScreen = () => {
   const { players, setPlayers } = usePlayers();
   const [currentPlayer, setCurrentPlayer] = useState(0);
-  const [showDialog, setShowDialog] = useState(false);
-  const [ballInput, setBallInput] = useState("");
+  const [showPasswordDialog, setPasswordDialog] = useState(false);
+  const [showBallDialog, setBallDialog] = useState(false);
+  const [password, setPassword] = useState("");
+  const [modalError, setModalError] = useState(false);
   console.log(players);
   return (
     <View style={styles.background}>
@@ -33,7 +35,7 @@ const GameScreen = () => {
           <Text style={styles.itemsText}>Show Your Color Ball:</Text>
           <TouchableOpacity
             style={[styles.actionButtons, { backgroundColor: "#007AFF" }]}
-            onPress={() => setShowDialog(true)}
+            onPress={() => setPasswordDialog(true)}
           >
             <Ionicons name="eye-outline" size={24} color="white" />
           </TouchableOpacity>
@@ -77,34 +79,51 @@ const GameScreen = () => {
       >
         <Text style={{ color: "white", fontSize: 20 }}>End Turn</Text>
       </TouchableOpacity>
-      <Modal
-        visible={showDialog}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowDialog(false)}
-      >
+      <Modal visible={showPasswordDialog} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Enter your Password:</Text>
+            <Text style={styles.modalTitle}>Enter Password</Text>
+            <Text
+              style={[
+                styles.modalDescription,
+                { color: modalError ? "red" : "white" },
+              ]}
+            >
+              {modalError
+                ? "Password is not Correct!"
+                : "Please Enter Your Password:"}
+            </Text>
             <TextInput
               style={styles.modalInput}
-              value={ballInput}
-              onChangeText={setBallInput}
+              value={password}
+              onChangeText={setPassword}
               placeholder="Password"
               placeholderTextColor="#aaa"
               keyboardType="number-pad"
             />
             <View style={styles.modalButtonRow}>
-              <TouchableOpacity onPress={() => setShowDialog(false)}>
-                <Text style={styles.modalButton}>Cancel</Text>
-              </TouchableOpacity>
               <TouchableOpacity
+                style={[styles.modalButton, { borderRightWidth: 0.5 }]}
                 onPress={() => {
-                  console.log("Entered:", ballInput);
-                  setShowDialog(false);
+                  setPasswordDialog(false);
+                  setModalError(false);
                 }}
               >
-                <Text style={styles.modalButton}>Confirm</Text>
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, { borderLeftWidth: 0.5 }]}
+                onPress={() => {
+                  setPassword("");
+                  if (password === players[currentPlayer].password) {
+                    setPasswordDialog(false);
+                    setModalError(false);
+                  } else {
+                    setModalError(true);
+                  }
+                }}
+              >
+                <Text style={styles.modalButtonText}>Confirm</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -114,7 +133,7 @@ const GameScreen = () => {
   );
 };
 
-export default GameScreen;
+export default gameScreen;
 
 const styles = StyleSheet.create({
   background: {
@@ -191,16 +210,21 @@ const styles = StyleSheet.create({
 
   modalContent: {
     backgroundColor: "#2c2c2e",
-    padding: 20,
     borderRadius: 10,
-    width: 250,
+    width: "60%",
+    alignItems: "center",
   },
 
   modalTitle: {
     fontSize: 18,
     color: "white",
     fontWeight: "bold",
-    marginBottom: 10,
+    marginTop: 20,
+  },
+
+  modalDescription: {
+    fontSize: 13,
+    marginTop: 5,
   },
 
   modalInput: {
@@ -209,20 +233,30 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#444",
     borderRadius: 8,
-    paddingHorizontal: 10,
     height: 30,
-    marginBottom: 20,
+    width: "90%",
+    marginTop: 20,
+    paddingLeft: 10,
   },
 
   modalButtonRow: {
     flexDirection: "row",
-    marginHorizontal: 20,
+    width: "100%",
+    borderTopWidth: 1,
+    borderColor: "#444",
+    marginTop: 10,
   },
 
   modalButton: {
+    width: "50%",
+    height: 40,
+    alignItems: "center",
+    justifyContent: "center",
+    borderColor: "#444",
+  },
+
+  modalButtonText: {
     color: "#007AFF",
-    backgroundColor: "red",
     fontSize: 16,
-    borderWidth: 2,
   },
 });
