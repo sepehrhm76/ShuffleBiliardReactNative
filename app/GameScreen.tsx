@@ -16,6 +16,8 @@ const gameScreen = () => {
   const [showBallDialog, setBallDialog] = useState(false);
   const [password, setPassword] = useState("");
   const [modalError, setModalError] = useState(false);
+  const [redPottedBallButton, setRedPottedBallButton] = useState(false);
+  const [pitokButton, setPitokButton] = useState(false);
   console.log(players);
   return (
     <View style={styles.background}>
@@ -42,12 +44,34 @@ const gameScreen = () => {
         </View>
         <View style={styles.inLineItems}>
           <Text style={styles.itemsText}>Red Ball Pots:</Text>
-          <TouchableOpacity style={styles.actionButtons}>
+          <TouchableOpacity
+            style={styles.actionButtons}
+            onPress={() => {
+              setRedPottedBallButton(true);
+              const updatedPlayers = [...players];
+              updatedPlayers[currentPlayer].redPottedBalls += 1;
+              setPlayers(updatedPlayers);
+            }}
+          >
             <Ionicons name="ellipse" size={24} color="red" />
           </TouchableOpacity>
           <Text style={styles.valuesText}>
             {players[currentPlayer].redPottedBalls}
           </Text>
+
+          <TouchableOpacity
+            style={[
+              styles.actionButtons,
+              { opacity: redPottedBallButton ? 1 : 0 },
+            ]}
+            onPress={() => {
+              const updatedPlayers = [...players];
+              updatedPlayers[currentPlayer].redPottedBalls -= 1;
+              setPlayers(updatedPlayers);
+            }}
+          >
+            <Ionicons name="ellipse" size={24} color="gray" />
+          </TouchableOpacity>
         </View>
         <View style={styles.inLineItems}>
           <Text style={styles.itemsText}>Select Color Balls:</Text>
@@ -65,15 +89,37 @@ const gameScreen = () => {
           <Text style={styles.itemsText}>Pitok:</Text>
           <TouchableOpacity
             style={[styles.actionButtons, { backgroundColor: "red" }]}
+            onPress={() => {
+              setPitokButton(true);
+              const updatedPlayers = [...players];
+              updatedPlayers[currentPlayer].pitok += 1;
+              setPlayers(updatedPlayers);
+            }}
           >
             <Ionicons name="add-outline" size={24} color="white" />
           </TouchableOpacity>
           <Text style={styles.valuesText}>{players[currentPlayer].pitok}</Text>
+          <TouchableOpacity
+            style={[
+              styles.actionButtons,
+              { backgroundColor: "red", opacity: pitokButton ? 1 : 0 },
+            ]}
+            onPress={() => {
+              const updatedPlayers = [...players];
+              const currentPitok = updatedPlayers[currentPlayer].pitok;
+              updatedPlayers[currentPlayer].pitok -= 1;
+              setPlayers(updatedPlayers);
+            }}
+          >
+            <Ionicons name="remove-outline" size={24} color="white" />
+          </TouchableOpacity>
         </View>
       </View>
       <TouchableOpacity
         style={styles.nextPlayerButton}
         onPress={() => {
+          setRedPottedBallButton(false);
+          setPitokButton(false);
           setCurrentPlayer((p) => (p + 1) % players.length);
         }}
       >
@@ -103,7 +149,10 @@ const gameScreen = () => {
             />
             <View style={styles.modalButtonRow}>
               <TouchableOpacity
-                style={[styles.modalButton, { borderRightWidth: 0.5 }]}
+                style={[
+                  styles.modalButton,
+                  { borderRightWidth: 0.5, width: "50%" },
+                ]}
                 onPress={() => {
                   setPasswordDialog(false);
                   setModalError(false);
@@ -112,18 +161,42 @@ const gameScreen = () => {
                 <Text style={styles.modalButtonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalButton, { borderLeftWidth: 0.5 }]}
+                style={[
+                  styles.modalButton,
+                  { borderLeftWidth: 0.5, width: "50%" },
+                ]}
                 onPress={() => {
                   setPassword("");
                   if (password === players[currentPlayer].password) {
                     setPasswordDialog(false);
                     setModalError(false);
+                    setBallDialog(true);
                   } else {
                     setModalError(true);
                   }
                 }}
               >
                 <Text style={styles.modalButtonText}>Confirm</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <Modal visible={showBallDialog} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Your Ball is:</Text>
+            <Text style={[styles.modalDescription, { color: "white" }]}>
+              {players[currentPlayer].colorBall}
+            </Text>
+            <View style={styles.modalButtonRow}>
+              <TouchableOpacity
+                style={[styles.modalButton, { width: "100%" }]}
+                onPress={() => {
+                  setBallDialog(false);
+                }}
+              >
+                <Text style={styles.modalButtonText}>Ok</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -248,7 +321,6 @@ const styles = StyleSheet.create({
   },
 
   modalButton: {
-    width: "50%",
     height: 40,
     alignItems: "center",
     justifyContent: "center",
