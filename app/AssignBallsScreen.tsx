@@ -68,10 +68,11 @@ const assignBallsScreen = () => {
                     <TextInput
                       style={styles.textField}
                       placeholder="Set a password"
-                      secureTextEntry={isPasswordSecure}
                       placeholderTextColor="#ccc"
                       value={password}
                       onChangeText={setPassword}
+                      secureTextEntry={isPasswordSecure}
+                      textContentType="oneTimeCode"
                     />
                     <TouchableOpacity
                       onPress={() => setPasswordSecure((prev) => !prev)}

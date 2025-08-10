@@ -39,9 +39,19 @@ const gameScreen = () => {
     <MenuProvider>
       <View style={styles.background}>
         <View style={styles.titleContainer}>
-          <Text style={styles.titleText}>
-            {players[currentPlayer].name}'s Turn
-          </Text>
+          <TouchableOpacity onPress={() => console.log("Menu pressed")}>
+            <Ionicons name="menu" size={28} color="white" />
+          </TouchableOpacity>
+          <View
+            style={{
+              alignItems: "center",
+              width: "85%",
+            }}
+          >
+            <Text style={styles.titleText}>
+              {players[currentPlayer].name}'s Turn
+            </Text>
+          </View>
         </View>
         <View style={styles.itemsContainer}>
           <View style={styles.inLineItems}>
@@ -62,7 +72,10 @@ const gameScreen = () => {
           <View style={styles.inLineItems}>
             <Text style={styles.itemsText}>Red Ball Pots:</Text>
             <TouchableOpacity
-              style={[styles.actionButtons, {opacity: redBallsOnTable.current !== 0 ? 1 : 0.5}]}
+              style={[
+                styles.actionButtons,
+                { opacity: redBallsOnTable.current !== 0 ? 1 : 0.5 },
+              ]}
               disabled={redBallsOnTable.current === 0}
               onPress={() => {
                 setRedPottedBallButton(true);
@@ -348,8 +361,10 @@ const styles = StyleSheet.create({
   },
 
   titleContainer: {
+    flexDirection: "row",
     alignItems: "center",
     marginTop: 50,
+    marginHorizontal: 16,
   },
 
   titleText: {
