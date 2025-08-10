@@ -62,7 +62,8 @@ const gameScreen = () => {
           <View style={styles.inLineItems}>
             <Text style={styles.itemsText}>Red Ball Pots:</Text>
             <TouchableOpacity
-              style={styles.actionButtons}
+              style={[styles.actionButtons, {opacity: redBallsOnTable.current !== 0 ? 1 : 0.5}]}
+              disabled={redBallsOnTable.current === 0}
               onPress={() => {
                 setRedPottedBallButton(true);
                 const updatedPlayers = [...players];
@@ -162,7 +163,7 @@ const gameScreen = () => {
           <View style={styles.inLineItems}>
             <Text style={styles.itemsText}>Color Balls Potted:</Text>
             <Text style={styles.valuesText}>
-              {players[currentPlayer].coloredPottedBalls}
+              [{players[currentPlayer].coloredPottedBalls.join(", ")}]
             </Text>
             <TouchableOpacity
               style={[
