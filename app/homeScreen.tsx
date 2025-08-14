@@ -161,7 +161,7 @@ const HomeScreen = () => {
                         }
                       );
                       setPlayers(players);
-                      router.push("/assignBallsScreen");
+                      router.push("/AssignBallsScreen");
                     }}
                     style={[
                       styles.assignBallsButton,

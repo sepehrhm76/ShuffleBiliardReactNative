@@ -117,7 +117,7 @@ const assignBallsScreen = () => {
                 () => Math.random() - 0.5
               );
               setPlayers(shuffled);
-              router.push("/gameScreen");
+              router.push("/GameScreen");
             }
           }}
           style={[
