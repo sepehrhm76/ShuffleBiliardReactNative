@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
   Modal,
@@ -23,6 +24,7 @@ const gameScreen = () => {
   const [showBallDialog, setBallDialog] = useState(false);
   const [password, setPassword] = useState("");
   const [modalError, setModalError] = useState(false);
+  const [showPlayersModal, setShowPlayersModal] = useState(false);
   const [redPottedBallButton, setRedPottedBallButton] = useState(false);
   const [pitokButton, setPitokButton] = useState(false);
   const playerRedRemainingKeepre = useRef(players[currentPlayer].redRemaining);
@@ -34,12 +36,12 @@ const gameScreen = () => {
   let turnRedBallPot = useRef(0);
   let redBallsOnTable = useRef(15);
   let turnPitok = useRef(players[currentPlayer].pitok);
-
+  players[currentPlayer].isPlayerTurn = true
   return (
     <MenuProvider>
       <View style={styles.background}>
         <View style={styles.titleContainer}>
-          <TouchableOpacity onPress={() => console.log("Menu pressed")}>
+          <TouchableOpacity onPress={() => setShowPlayersModal(true)}>
             <Ionicons name="menu" size={28} color="white" />
           </TouchableOpacity>
           <View
@@ -263,6 +265,7 @@ const gameScreen = () => {
             setColorPottedUndoButton(false);
             turnRedBallPot.current = 0;
             setRoundColorBallsPotted([]);
+            players[currentPlayer].isPlayerTurn = false
             playerRedRemainingKeepre.current =
               players[(currentPlayer + 1) % players.length].redRemaining;
             setCurrentPlayer((p) => (p + 1) % players.length);
@@ -341,6 +344,62 @@ const gameScreen = () => {
                   }}
                 >
                   <Text style={styles.modalButtonText}>Ok</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+        <Modal visible={showPlayersModal} transparent animationType="fade">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={{ width: "100%", padding: 16 }}>
+                {players.map((player, index) => (
+                  <View key={index} style={styles.playersList}>
+                    <TouchableOpacity
+                      style={{
+                        backgroundColor: "#1C7630",
+                        width: "100%",
+                        marginHorizontal: 6,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        borderRadius: 10,
+                        opacity: player.isPlayerTurn ? 0.5 : 1
+                      }}
+                      onPress={() => {
+                        setShowPlayersModal(false);
+                      }}
+                    >
+                      <Text style={styles.titleText}>{[player.name]}</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+              </View>
+              <View style={styles.modalButtonRow}>
+                <TouchableOpacity
+                  style={[
+                    styles.modalButton,
+                    { borderRightWidth: 0.5, width: "50%" },
+                  ]}
+                  onPress={() => {
+                    setShowPlayersModal(false);
+
+                    router.replace("/HomeScreen");
+                  }}
+                >
+                  <Text style={[styles.modalButtonText, { color: "red" }]}>
+                    Exit Game
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.modalButton,
+                    { borderLeftWidth: 0.5, width: "50%" },
+                  ]}
+                  onPress={() => {
+                    setShowPlayersModal(false);
+                  }}
+                >
+                  <Text style={styles.modalButtonText}>Close</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -477,5 +536,13 @@ const styles = StyleSheet.create({
   modalButtonText: {
     color: "#007AFF",
     fontSize: 16,
+  },
+
+  playersList: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingBottom: 10,
+    width: "100%",
   },
 });

@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
 import {
   FlatList,
@@ -14,9 +13,9 @@ import {
   View,
 } from "react-native";
 import { usePlayers } from "./Context/PlayerContext";
+import { router } from "expo-router";
 
 const assignBallsScreen = () => {
-  const router = useRouter();
   const { players, setPlayers } = usePlayers();
   const [playerQueue, setPlayerQueue] = useState([...players]);
   const [password, setPassword] = useState("");
@@ -117,7 +116,7 @@ const assignBallsScreen = () => {
                 () => Math.random() - 0.5
               );
               setPlayers(shuffled);
-              router.push("/GameScreen");
+              router.replace("/GameScreen");
             }
           }}
           style={[

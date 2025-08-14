@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   FlatList,
@@ -23,7 +23,6 @@ import {
 import { usePlayers } from "./Context/PlayerContext";
 import { Player } from "./Models/Player";
 const HomeScreen = () => {
-  const router = useRouter();
   const { setPlayers } = usePlayers();
   const [selectRedBallCount, setSelectRedBallCount] = useState<number>(3);
   const redBalls = [1, 2, 3, 4, 5];
@@ -161,7 +160,7 @@ const HomeScreen = () => {
                         }
                       );
                       setPlayers(players);
-                      router.push("/AssignBallsScreen");
+                      router.replace("/AssignBallsScreen");
                     }}
                     style={[
                       styles.assignBallsButton,
