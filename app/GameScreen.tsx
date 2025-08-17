@@ -17,6 +17,7 @@ import {
   MenuTrigger,
 } from "react-native-popup-menu";
 import { usePlayers } from "./Context/PlayerContext";
+import { red } from "react-native-reanimated/lib/typescript/Colors";
 const gameScreen = () => {
   const { players, setPlayers } = usePlayers();
   const [currentPlayer, setCurrentPlayer] = useState(0);
@@ -27,16 +28,19 @@ const gameScreen = () => {
   const [showPlayersModal, setShowPlayersModal] = useState(false);
   const [redPottedBallButton, setRedPottedBallButton] = useState(false);
   const [pitokButton, setPitokButton] = useState(false);
+  const [pitokCalculated, setPitokCalculated] = useState(false);
   const playerRedRemainingKeepre = useRef(players[currentPlayer].redRemaining);
   const [colorBalls, setColorBalls] = useState([2, 3, 4, 5, 6, 7]);
   const [roundColorBallsPotted, setRoundColorBallsPotted] = useState<number[]>(
     []
   );
   const [colorPottedUndoButton, setColorPottedUndoButton] = useState(false);
+  const [redPitokUndo, setRedPitokUndo] = useState(false);
   let turnRedBallPot = useRef(0);
   let redBallsOnTable = useRef(15);
+  let redBallsOnpitok = useRef(0);
   let turnPitok = useRef(players[currentPlayer].pitok);
-  players[currentPlayer].isPlayerTurn = true
+  players[currentPlayer].isPlayerTurn = true;
   return (
     <MenuProvider>
       <View style={styles.background}>
@@ -53,6 +57,10 @@ const gameScreen = () => {
             <Text style={styles.titleText}>
               {players[currentPlayer].name}'s Turn
             </Text>
+          </View>
+          <View style={{ alignItems: "center" }}>
+            <Ionicons name="radio-button-on-outline" size={18} color={"red"} />
+            <Text style={{ color: "white" }}>{redBallsOnTable.current}</Text>
           </View>
         </View>
         <View style={styles.itemsContainer}>
@@ -255,6 +263,60 @@ const gameScreen = () => {
             >
               <Ionicons name="remove-outline" size={24} color="white" />
             </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.actionButtons,
+                { opacity: redBallsOnTable.current !== 0 ? 1 : 0 },
+              ]}
+              onPress={() => {
+                setRedPitokUndo(true);
+                redBallsOnTable.current -= 1;
+                redBallsOnpitok.current += 1;
+                const updatedPlayers = [...players];
+                if (!pitokCalculated) {
+                  updatedPlayers[currentPlayer].pitok += 1;
+                  updatedPlayers[currentPlayer].redRemaining += 1;
+                  setPitokCalculated(true);
+                }
+                setPlayers(updatedPlayers);
+              }}
+              disabled={redBallsOnTable.current === 0}
+            >
+              <Ionicons
+                name="radio-button-on-outline"
+                size={12}
+                color={"red"}
+              />
+              <Ionicons
+                name="radio-button-off-outline"
+                size={12}
+                color={"darkRed"}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.actionButtons, { opacity: redPitokUndo ? 1 : 0 }]}
+              disabled={!redPitokUndo}
+              onPress={() => {
+                setPitokCalculated(false);
+                redBallsOnpitok.current -= 1;
+                const updatedPlayers = [...players];
+                redBallsOnTable.current += 1;
+                if (turnPitok.current !== updatedPlayers[currentPlayer].pitok) {
+                  updatedPlayers[currentPlayer].redRemaining -= 1;
+                  updatedPlayers[currentPlayer].pitok -= 1;
+                  setPlayers(updatedPlayers);
+                }
+                if (redBallsOnpitok.current === 0) {
+                  setRedPitokUndo(false);
+                }
+              }}
+            >
+              <Ionicons
+                name="arrow-undo-circle-outline"
+                size={24}
+                color="gray"
+              />
+            </TouchableOpacity>
           </View>
         </View>
         <TouchableOpacity
@@ -263,9 +325,12 @@ const gameScreen = () => {
             setRedPottedBallButton(false);
             setPitokButton(false);
             setColorPottedUndoButton(false);
+            setRedPitokUndo(false);
+            setPitokCalculated(false);
             turnRedBallPot.current = 0;
+            redBallsOnpitok.current = 0;
             setRoundColorBallsPotted([]);
-            players[currentPlayer].isPlayerTurn = false
+            players[currentPlayer].isPlayerTurn = false;
             playerRedRemainingKeepre.current =
               players[(currentPlayer + 1) % players.length].redRemaining;
             setCurrentPlayer((p) => (p + 1) % players.length);
@@ -363,10 +428,25 @@ const gameScreen = () => {
                         alignItems: "center",
                         justifyContent: "center",
                         borderRadius: 10,
-                        opacity: player.isPlayerTurn ? 0.5 : 1
+                        opacity: player.isPlayerTurn ? 0.5 : 1,
                       }}
                       onPress={() => {
                         setShowPlayersModal(false);
+                        if (player.isPlayerTurn) return;
+                        setRedPottedBallButton(false);
+                        setPitokButton(false);
+                        setColorPottedUndoButton(false);
+                        setRedPitokUndo(false);
+                        setPitokCalculated(false);
+                        turnRedBallPot.current = 0;
+                        redBallsOnpitok.current = 0;
+                        setRoundColorBallsPotted([]);
+                        players[currentPlayer].isPlayerTurn = false;
+                        playerRedRemainingKeepre.current =
+                          players[
+                            (currentPlayer + 1) % players.length
+                          ].redRemaining;
+                        setCurrentPlayer(index);
                       }}
                     >
                       <Text style={styles.titleText}>{[player.name]}</Text>
