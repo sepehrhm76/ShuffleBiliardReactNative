@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Modal,
   StyleSheet,
@@ -17,7 +17,6 @@ import {
   MenuTrigger,
 } from "react-native-popup-menu";
 import { usePlayers } from "./Context/PlayerContext";
-import { red } from "react-native-reanimated/lib/typescript/Colors";
 const gameScreen = () => {
   const { players, setPlayers } = usePlayers();
   const [currentPlayer, setCurrentPlayer] = useState(0);
@@ -40,7 +39,145 @@ const gameScreen = () => {
   let redBallsOnTable = useRef(15);
   let redBallsOnpitok = useRef(0);
   let turnPitok = useRef(players[currentPlayer].pitok);
+
+  // Status modal controls
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [statusTitle, setStatusTitle] = useState("");
+  const [statusDescription, setStatusDescription] = useState("");
+  const lastStatusKey = useRef<string | null>(null);
+  const [statusKey, setStatusKey] = useState<"lost" | "win" | "equal" | null>(null);
   players[currentPlayer].isPlayerTurn = true;
+
+  useEffect(() => {
+    getGameStatus();
+  }, [currentPlayer, colorBalls, redBallsOnTable.current, players]);
+
+  function getGameStatus() {
+    // Decide if we should show a status modal; avoid loops by only updating when status changes
+    let key: string | null = null;
+    let title = "";
+    let description = "";
+
+    // 1) Lost case: player's red remaining exceeds balls on table
+    if (players[currentPlayer].redRemaining > redBallsOnTable.current) {
+      key = "lost";
+      title = players[currentPlayer].name + " lost";
+      description = `get lost ${players[currentPlayer].name}`;
+      setStatusTitle(title);
+      setStatusDescription(description);
+      setShowStatusModal(true);
+      setStatusKey("lost");
+    }
+
+    // 2) Win case: player potted their own color ball
+    if (
+      players[currentPlayer].coloredPottedBalls.includes(
+        players[currentPlayer].colorBall
+      )
+    ) {
+      key = "win";
+      title = players[currentPlayer].name + " won";
+      description = `${players[currentPlayer].name} has won the game by potting their color ball ${players[currentPlayer].colorBall}.`;
+      setStatusTitle(title);
+      setStatusDescription(description);
+      setShowStatusModal(true);
+      setStatusKey("win");
+    }
+
+    // 3) All assigned color balls have been potted and game is equal
+    const playerBalls = players.map((p) => p.colorBall);
+    const colorSet = new Set<number>(
+      players.flatMap((p) => p.coloredPottedBalls)
+    );
+    const isSubset = playerBalls.every((b) => colorSet.has(b));
+
+    if (isSubset) {
+      key = "equal";
+      title = "Game is Equal";
+      description = players
+        .map((p) => `${p.name}: ${p.colorBall}`)
+        .join(", \n");
+      setStatusTitle(title);
+      setStatusDescription(description);
+      setShowStatusModal(true);
+      setStatusKey("equal");
+    }
+  }
+
+  // Helper function to render custom modal
+  const renderCustomModal = (
+    visible: boolean,
+    onClose: () => void,
+    options?: {
+      title?: string;
+      description?: string;
+      // Back-compat (right button):
+      secondButtonTitle?: string;
+      onSecondAction?: () => void;
+      // New customizable buttons:
+      leftButtonTitle?: string;
+      leftButtonOnPress?: () => void;
+      leftButtonTextColor?: string;
+      rightButtonTitle?: string;
+      rightButtonOnPress?: () => void;
+      rightButtonTextColor?: string;
+      mode?: 'single' | 'dual';
+    },
+    children?: React.ReactNode
+  ) => (
+    <Modal visible={visible} transparent animationType="fade">
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          {options?.title && (
+            <Text style={styles.modalTitle}>{options.title}</Text>
+          )}
+          {typeof options?.description !== "undefined" && (
+            <Text
+              style={[
+                styles.modalDescription,
+                // allow color override for password modal error
+                options?.title === "Enter Password"
+                  ? { color: modalError ? "red" : "white" }
+                  : { color: "white" },
+              ]}
+            >
+              {options.description}
+            </Text>
+          )}
+          {children}
+          {options?.mode === 'single' ? (
+            <View style={styles.modalButtonRow}>
+              <TouchableOpacity
+                style={[styles.modalButton, { width: '100%' }]}
+                onPress={onClose}
+              >
+                <Text style={styles.modalButtonText}>OK</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (options?.secondButtonTitle || options?.onSecondAction || options?.leftButtonTitle || options?.rightButtonTitle) ? (
+            <View style={styles.modalButtonRow}>
+              <TouchableOpacity
+                style={[styles.modalButton, { borderRightWidth: 0.5, width: '50%' }]}
+                onPress={options?.leftButtonOnPress || onClose}
+              >
+                <Text style={[styles.modalButtonText, options?.leftButtonTextColor ? { color: options.leftButtonTextColor } : null]}>
+                  {options?.leftButtonTitle || 'Cancel'}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, { borderLeftWidth: 0.5, width: '50%' }]}
+                onPress={options?.rightButtonOnPress || options?.onSecondAction}
+              >
+                <Text style={[styles.modalButtonText, options?.rightButtonTextColor ? { color: options.rightButtonTextColor } : null]}>
+                  {options?.rightButtonTitle || options?.secondButtonTitle || 'OK'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
+        </View>
+      </View>
+    </Modal>
+  );
   return (
     <MenuProvider>
       <View style={styles.background}>
@@ -338,153 +475,152 @@ const gameScreen = () => {
         >
           <Text style={{ color: "white", fontSize: 20 }}>End Turn</Text>
         </TouchableOpacity>
-        <Modal visible={showPasswordDialog} transparent animationType="fade">
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Enter Password</Text>
-              <Text
+        {/* Password Dialog Modal */}
+        {renderCustomModal(
+          showPasswordDialog,
+          () => {
+            setPasswordDialog(false);
+            setModalError(false);
+          },
+          {
+            title: "Enter Password",
+            description: modalError
+              ? "Password is not Correct!"
+              : "Please Enter Your Password:",
+            secondButtonTitle: "Confirm",
+            onSecondAction: () => {
+              setPassword("");
+              if (password === players[currentPlayer].password) {
+                setPasswordDialog(false);
+                setModalError(false);
+                setBallDialog(true);
+              } else {
+                setModalError(true);
+              }
+            },
+          },
+          <>
+            <TextInput
+              style={styles.modalInput}
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Password"
+              placeholderTextColor="#aaa"
+            />
+          </>
+        )}
+        {/* Ball Dialog Modal */}
+        {renderCustomModal(
+          showBallDialog,
+          () => setBallDialog(false),
+          {
+            title: "Your Ball is:",
+            description: players[currentPlayer].colorBall.toString(),
+          },
+          <View style={styles.modalButtonRow}>
+            <TouchableOpacity
+              style={[styles.modalButton, { width: "100%" }]}
+              onPress={() => setBallDialog(false)}
+            >
+              <Text style={styles.modalButtonText}>Ok</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        {/* Players Modal */}
+        {renderCustomModal(
+          showPlayersModal,
+          () => setShowPlayersModal(false),
+          { title: "Players" },
+          <>
+            <View style={{ width: "100%", padding: 16 }}>
+              {players.map((player, index) => (
+                <View key={index} style={styles.playersList}>
+                  <TouchableOpacity
+                    style={{
+                      backgroundColor: "#1C7630",
+                      width: "100%",
+                      marginHorizontal: 6,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      borderRadius: 10,
+                      opacity: player.isPlayerTurn ? 0.5 : 1,
+                    }}
+                    onPress={() => {
+                      setShowPlayersModal(false);
+                      if (player.isPlayerTurn) return;
+                      setRedPottedBallButton(false);
+                      setPitokButton(false);
+                      setColorPottedUndoButton(false);
+                      setRedPitokUndo(false);
+                      setPitokCalculated(false);
+                      turnRedBallPot.current = 0;
+                      redBallsOnpitok.current = 0;
+                      setRoundColorBallsPotted([]);
+                      players[currentPlayer].isPlayerTurn = false;
+                      playerRedRemainingKeepre.current =
+                        players[
+                          (currentPlayer + 1) % players.length
+                        ].redRemaining;
+                      setCurrentPlayer(index);
+                    }}
+                  >
+                    <Text style={styles.titleText}>{[player.name]}</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </View>
+            <View style={styles.modalButtonRow}>
+              <TouchableOpacity
                 style={[
-                  styles.modalDescription,
-                  { color: modalError ? "red" : "white" },
+                  styles.modalButton,
+                  { borderRightWidth: 0.5, width: "50%" },
                 ]}
+                onPress={() => {
+                  setShowPlayersModal(false);
+                  router.replace("/HomeScreen");
+                }}
               >
-                {modalError
-                  ? "Password is not Correct!"
-                  : "Please Enter Your Password:"}
-              </Text>
-              <TextInput
-                style={styles.modalInput}
-                value={password}
-                onChangeText={setPassword}
-                placeholder="Password"
-                placeholderTextColor="#aaa"
-              />
-              <View style={styles.modalButtonRow}>
-                <TouchableOpacity
-                  style={[
-                    styles.modalButton,
-                    { borderRightWidth: 0.5, width: "50%" },
-                  ]}
-                  onPress={() => {
-                    setPasswordDialog(false);
-                    setModalError(false);
-                  }}
-                >
-                  <Text style={styles.modalButtonText}>Cancel</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.modalButton,
-                    { borderLeftWidth: 0.5, width: "50%" },
-                  ]}
-                  onPress={() => {
-                    setPassword("");
-                    if (password === players[currentPlayer].password) {
-                      setPasswordDialog(false);
-                      setModalError(false);
-                      setBallDialog(true);
-                    } else {
-                      setModalError(true);
-                    }
-                  }}
-                >
-                  <Text style={styles.modalButtonText}>Confirm</Text>
-                </TouchableOpacity>
-              </View>
+                <Text style={[styles.modalButtonText, { color: "red" }]}>
+                  Exit Game
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.modalButton,
+                  { borderLeftWidth: 0.5, width: "50%" },
+                ]}
+                onPress={() => {
+                  setShowPlayersModal(false);
+                }}
+              >
+                <Text style={styles.modalButtonText}>Close</Text>
+              </TouchableOpacity>
             </View>
-          </View>
-        </Modal>
-        <Modal visible={showBallDialog} transparent animationType="fade">
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Your Ball is:</Text>
-              <Text style={[styles.modalDescription, { color: "white" }]}>
-                {players[currentPlayer].colorBall}
-              </Text>
-              <View style={styles.modalButtonRow}>
-                <TouchableOpacity
-                  style={[styles.modalButton, { width: "100%" }]}
-                  onPress={() => {
-                    setBallDialog(false);
-                  }}
-                >
-                  <Text style={styles.modalButtonText}>Ok</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
-        <Modal visible={showPlayersModal} transparent animationType="fade">
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <View style={{ width: "100%", padding: 16 }}>
-                {players.map((player, index) => (
-                  <View key={index} style={styles.playersList}>
-                    <TouchableOpacity
-                      style={{
-                        backgroundColor: "#1C7630",
-                        width: "100%",
-                        marginHorizontal: 6,
-                        alignItems: "center",
-                        justifyContent: "center",
-                        borderRadius: 10,
-                        opacity: player.isPlayerTurn ? 0.5 : 1,
-                      }}
-                      onPress={() => {
-                        setShowPlayersModal(false);
-                        if (player.isPlayerTurn) return;
-                        setRedPottedBallButton(false);
-                        setPitokButton(false);
-                        setColorPottedUndoButton(false);
-                        setRedPitokUndo(false);
-                        setPitokCalculated(false);
-                        turnRedBallPot.current = 0;
-                        redBallsOnpitok.current = 0;
-                        setRoundColorBallsPotted([]);
-                        players[currentPlayer].isPlayerTurn = false;
-                        playerRedRemainingKeepre.current =
-                          players[
-                            (currentPlayer + 1) % players.length
-                          ].redRemaining;
-                        setCurrentPlayer(index);
-                      }}
-                    >
-                      <Text style={styles.titleText}>{[player.name]}</Text>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-              <View style={styles.modalButtonRow}>
-                <TouchableOpacity
-                  style={[
-                    styles.modalButton,
-                    { borderRightWidth: 0.5, width: "50%" },
-                  ]}
-                  onPress={() => {
-                    setShowPlayersModal(false);
+          </>
+        )}
 
-                    router.replace("/HomeScreen");
-                  }}
-                >
-                  <Text style={[styles.modalButtonText, { color: "red" }]}>
-                    Exit Game
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.modalButton,
-                    { borderLeftWidth: 0.5, width: "50%" },
-                  ]}
-                  onPress={() => {
-                    setShowPlayersModal(false);
-                  }}
-                >
-                  <Text style={styles.modalButtonText}>Close</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
+        {/* Status Modal */}
+        {renderCustomModal(
+          showStatusModal,
+          () => setShowStatusModal(false),
+          statusKey === 'win' || statusKey === 'equal'
+            ? {
+                title: statusTitle,
+                description: statusDescription,
+                // Left = Exit Game (red) -> exits
+                leftButtonTitle: 'Exit Game',
+                leftButtonTextColor: 'red',
+                leftButtonOnPress: () => router.replace('/HomeScreen'),
+                // Right = OK -> dismiss
+                rightButtonTitle: 'OK',
+                rightButtonOnPress: () => setShowStatusModal(false),
+              }
+            : {
+                title: statusTitle,
+                description: statusDescription,
+                mode: 'single', // only OK, dismisses
+              }
+        )}
       </View>
     </MenuProvider>
   );
